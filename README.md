@@ -28,3 +28,30 @@ An end-to-end data engineering pipeline translating raw Malaysian public transit
 * `/sql`: Database build queries and operational summary views.
 * `/dashboard`: Production `.pbix` template.
 * `/documentation`: Executive portfolio presentation deck.
+
+## Key SQL Insights & Relational Modeling
+
+To calculate the financial impact of transit delays dynamically without hardcoding assumptions, a relational database view was constructed in SQLite. This view joins daily ridership facts with economic parameter configurations to output an executive-level risk summary:
+-- 1. DROP THE OLD HARDCODED VIEW
+DROP VIEW IF EXISTS v_malaysia_executive_summary;
+
+-- 2. BUILD THE DYNAMIC RELATIONAL VIEW
+CREATE VIEW v_malaysia_executive_summary AS
+SELECT 
+    f.transit_line,
+    COUNT(f.date) AS monitored_operating_days,
+    SUM(f.daily_passengers) AS total_recorded_volume,
+    SUM(f.passengers_affected) AS total_delayed_citizens,
+    
+    -- Dynamic Math pulling directly from your config table variables
+    ROUND(SUM(
+        (p.assumed_delay_minutes / 60.0) * (f.daily_passengers * p.capacity_affected_rate) * p.hourly_wage_myr
+    ), 2) AS simulated_economic_loss_myr
+
+FROM stg_malaysia_ridership f
+INNER JOIN cfg_transit_parameters p 
+    ON f.transit_line = p.transit_line
+GROUP BY f.transit_line;
+
+-- 3. FETCH THE RESULTS
+SELECT * FROM v_malaysia_executive_summary ORDER BY simulated_economic_loss_myr DESC;
