@@ -1,4 +1,7 @@
 # Klang-valley-urban-mobility-risk
+
+![Data Pipeline Dashboard](dashboard.png)
+
 An end-to-end ETL pipeline translating raw Malaysian public transit data into executive economic loss intelligence using Python, SQLite, and Power BI. 
 
 # Klang Valley Urban Mobility Risk Index
